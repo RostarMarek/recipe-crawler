@@ -1,6 +1,6 @@
 require 'Nokogiri'
 require 'HTTParty'
-require 'Pry'
+#require 'Pry'
 require 'csv'
 
 class RecipeScraper
@@ -90,6 +90,11 @@ class RecipeScraper
 
 end
 
-
-#Pry.start(binding)
-RecipeScraper.scrape_pages(6663..6700)
+if ARGV.count == 2 && ARGV[0].to_i > 0 && ARGV[1].to_i >= ARGV[0].to_i
+  RecipeScraper.scrape_pages(ARGV[0].to_i..ARGV[1].to_i)
+else
+  puts "USAGE: \n"
+  puts "\t - $ ruby recipe_scraper.rb <range_from> <range_to>"
+  puts "\t - <range_from> is an integer value higher than 0"
+  puts "\t - <range_to> is an integer value equal or greater than <range_from> value"
+end
