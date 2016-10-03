@@ -10,6 +10,9 @@
 /test/version_tmp/
 /tmp/
 
+# Ignore the recipes.csv file
+recipes.csv
+
 # Used by dotenv library to load environment variables.
 # .env
 
