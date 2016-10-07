@@ -8,8 +8,8 @@ class RecipeScraper
   BASE_URI = 'http://allrecipes.com/recipe/'
 
   def self.scrape_pages(range = 0..0)
-    (range).each do |n|
-      CSV.open('recipes.csv', 'ab', {headers: true, col_sep: "; "}) do |csv|
+    CSV.open('recipes.csv', 'ab', {headers: true, col_sep: "; "}) do |csv|
+      (range).each do |n|
         begin
           parsed_page = parse_page(n)
         rescue Exception => e
@@ -18,6 +18,7 @@ class RecipeScraper
           recipe = scrape_recipe(parsed_page)
           if recipe
             csv << ["#{recipe[:name]}",
+                    "#{recipe[:description]}",
                     "#{recipe[:ingredients].to_s.gsub(/([\[\]\\"])/,'')}",
                     "#{recipe[:servings]}",
                     "#{recipe[:calories]}",
@@ -52,7 +53,8 @@ class RecipeScraper
     return unless parsed_page && parsed_page.css('.error-page .error-page__404').empty?
 
     recipe = {}
-    recipe[:name] = parsed_page.css('.submitter__description').text.strip.gsub(/\"/, '')
+    recipe[:name] = parsed_page.css('.recipe-summary__h1').text.strip.gsub(/\"/, '')
+    recipe[:description] = parsed_page.css('.submitter__description').text.strip.gsub(/\"/, '')
     recipe[:ingredients] = []
     (0..1).each do |i|
       parsed_page.css('.recipe-ingredients > ul')[i].css('li span.recipe-ingred_txt').each do |li|
@@ -61,31 +63,69 @@ class RecipeScraper
     end
 
     unless parsed_page.css('ul.prepTime li').empty?
-      recipe[:cook_time] = { :preparation => count_time(parsed_page.css('ul.prepTime li')[1].css('span.prepTime__item--time')),
-                             :cook => count_time(parsed_page.css('ul.prepTime li')[2].css('span.prepTime__item--time')),
-                             :total => count_time(parsed_page.css('ul.prepTime li')[3].css('span.prepTime__item--time'))
+      recipe[:cook_time] = { :preparation => count_time(parsed_page, 1),
+                             :cook => count_time(parsed_page, 2),
+                             :total => count_time(parsed_page, 3)
       }
     end
 
     recipe[:directions] = []
     parsed_page.css('.recipe-directions__list').first.css('li').each do |li|
-      recipe[:directions] << li.text.strip
+      recipe[:directions] << li.text.strip.gsub(';','.')
     end
 
-    recipe[:servings] = parsed_page.css('#metaRecipeServings').first.attributes['content'].value
-    recipe[:calories] = parsed_page.css('.calorie-count span').first.children.first.text
-    recipe[:rating] = parsed_page.css('div.rating-stars').first.attributes["data-ratingstars"].value
+    recipe[:servings] = servings(parsed_page)
+    recipe[:calories] = calories(parsed_page)
+    recipe[:rating] = rating(parsed_page)
 
     recipe
   end
 
-  def self.count_time(spans)
-    return unless spans
-    time = 0
-    spans.each_with_index do |span, i|
-      (i % 2 == 0) ? time += span.text.to_i * 60 : time += span.text.to_i
+  private
+
+  def self.count_time(parsed_page, type)
+    return unless parsed_page && type && type.is_a?(Integer)
+    prep_time_items = parsed_page.css('ul.prepTime li')
+    li = prep_time_items[type]
+    spans = li.css('span.prepTime__item--time') if li
+    time = count_minutes(spans)
+  end
+
+  def self.count_minutes(spans)
+    result = case spans.count
+    when 1
+      spans[0].text.to_i
+    when 2
+      (spans[0].text.to_i * 60) + spans[1].text.to_i
+    when 3
+      (spans[0].text.to_i * 24 * 60) + (spans[1].text.to_i * 60) + spans[2].text.to_i
+    else
+      0
     end
-    time
+    result
+  end
+
+  def self.calories(parsed_page)
+    return unless parsed_page
+    calories_span = parsed_page.css('.calorie-count span')
+    first_span = calories_span.first if calories_span
+    calories_span ? first_span.text : nil.to_s
+  end
+
+  def self.servings(parsed_page)
+    return unless parsed_page
+    servings_span = parsed_page.css('#metaRecipeServings')
+    first_span = servings_span.first if servings_span
+    content_attribute = first_span.attributes['content']
+    content_attribute ? content_attribute.value : nil.to_s
+  end
+
+  def self.rating(parsed_page)
+    return unless parsed_page
+    rating_span = parsed_page.css('div.rating-stars')
+    first_span = rating_span.first if rating_span
+    data_ratingstars_attribute = first_span.attributes['data-ratingstars']
+    data_ratingstars_attribute ? data_ratingstars_attribute.value : nil.to_s
   end
 
 end
