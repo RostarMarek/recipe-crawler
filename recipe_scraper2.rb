@@ -19,7 +19,8 @@ class RecipeScraper
           if recipe
             csv << ["#{recipe[:name]}",
                     "#{recipe[:ingredients].to_s.gsub(/([\[\]\\"])/,'')}",
-                    "#{recipe[:preparation].to_s.gsub(/([\[\]\\"])/,'')}"
+                    "#{recipe[:preparation].to_s.gsub(/([\[\]\\"])/,'')}",
+                    "#{recipe[:rating]}"
             ]
             puts "\t SUCCESS, data appended to recipes2.csv"
           else
@@ -62,8 +63,6 @@ class RecipeScraper
 
     recipe
   end
-
-  private
 
   def self.rating(parsed_page)
     return unless parsed_page
