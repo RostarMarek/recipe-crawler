@@ -28,7 +28,7 @@ class RecipeScraper
                     (recipe[:cook_time]) ? "#{recipe[:cook_time][:total]}" : 0.to_s,
                     "#{recipe[:directions].to_s.gsub(/([\[\]\\",])/,'')}"
                     ]
-            puts "\t SUCCESS, data appended to app_ids.csv"
+            puts "\t SUCCESS, data appended to recipes.csv"
           else
             puts "\t PAGE NOT FOUND"
           end

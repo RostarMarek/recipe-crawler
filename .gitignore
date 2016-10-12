@@ -12,6 +12,8 @@
 
 # Ignore the recipes.csv file
 recipes.csv
+recipes2.csv
+recipes2_backup.csv
 
 # Used by dotenv library to load environment variables.
 # .env
