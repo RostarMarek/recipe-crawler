@@ -12,8 +12,8 @@ class RecipeScraper
       (range).each do |n|
         begin
           parsed_page = parse_page(n)
-        rescue Exception => e
-          puts "\tError: #{e}"
+        rescue StandardError => e
+          puts "\tError while parsing page: #{e}"
         else
           recipe = scrape_recipe(parsed_page)
           if recipe

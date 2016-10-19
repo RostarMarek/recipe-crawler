@@ -12,8 +12,8 @@ class RecipeScraper
       (range).each do |n|
         begin
           parsed_page = parse_page(n)
-        rescue Exception => e
-          puts "\tError: #{e}"
+        rescue StandardError=>e
+          puts "\tError while parsing page: #{e}"
         else
           recipe = scrape_recipe(parsed_page)
           if recipe
@@ -23,9 +23,9 @@ class RecipeScraper
                     "#{recipe[:servings]}",
                     "#{recipe[:calories]}",
                     "#{recipe[:rating]}",
-                    (recipe[:cook_time]) ? "#{recipe[:cook_time][:preparation]}" : 0.to_s,
-                    (recipe[:cook_time]) ? "#{recipe[:cook_time][:cook]}" : 0.to_s,
-                    (recipe[:cook_time]) ? "#{recipe[:cook_time][:total]}" : 0.to_s,
+                    (recipe[:cook_time]) ? "#{recipe[:cook_time][:preparation]}" : '0',
+                    (recipe[:cook_time]) ? "#{recipe[:cook_time][:cook]}" : '0',
+                    (recipe[:cook_time]) ? "#{recipe[:cook_time][:total]}" : '0',
                     "#{recipe[:directions].to_s.gsub(/([\[\]\\",])/,'')}"
                     ]
             puts "\t SUCCESS, data appended to recipes.csv"
