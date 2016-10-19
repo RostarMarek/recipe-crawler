@@ -24,7 +24,7 @@ class ElasticsearchRecipeLoader
     parsed_recipes.each do |recipe|
       begin
         response = post_recipe(recipe)
-      rescue Exception => e
+      rescue StandardError=>e
         puts "\tError: #{e}"
       else
         puts "\t Success: #{response}"
